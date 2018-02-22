@@ -681,6 +681,8 @@ groups:
         max: 180
       - name: use_gps_heading
         table: use_gps_heading
+      - name: gps_heading_max_accel_cm
+        max: UINT16_MAX
 
   - name: PG_ARMING_CONFIG
     type: armingConfig_t

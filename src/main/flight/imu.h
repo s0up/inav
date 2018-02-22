@@ -50,6 +50,7 @@ typedef struct imuConfig_s {
     uint16_t dcm_ki_mag;                    // DCM filter integral gain ( x 10000) for magnetometer and GPS heading
     uint8_t small_angle;
     uint8_t use_gps_heading;                // from gps_heading_e
+    uint16_t gps_heading_max_accel_cm;
 } imuConfig_t;
 
 PG_DECLARE(imuConfig_t, imuConfig);
@@ -60,6 +61,7 @@ typedef struct imuRuntimeConfig_s {
     float dcm_kp_mag;
     float dcm_ki_mag;
     uint8_t small_angle;
+    uint16_t gps_heading_max_accel_cm;
 } imuRuntimeConfig_t;
 
 void imuConfigure(void);

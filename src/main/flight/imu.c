@@ -474,6 +474,8 @@ static void imuCalculateEstimatedAttitude(float dT)
 #if defined(USE_GPS)
     bool canUseCOG = false;
     int16_t groundCourse;
+    static int16_t lastCOGRotation = 0;
+
     if (imuHasGPSHeadingEnabled() && gpsHasCOG) {
         if (STATE(FIXED_WING)) {
             // Fixed wing always flies forward, so we require a 3m/s speed and use
@@ -481,35 +483,22 @@ static void imuCalculateEstimatedAttitude(float dT)
             canUseCOG = gpsSol.groundSpeed >= 300;
             groundCourse = gpsSol.groundCourse;
         } else {
-            // MR might fly on any direction, but it tends to fly in the direction the
-            // head it's tilted to. To compensate for this, we rotate gpsSol.groundCourse
-            // by the tilt direction. Pitch and roll angles must fall in the [20, 90) interval
-            // so the data doesn't get polluted during flips or rolls.
-            // For now, we also require a harcoded speed of 6m/s, but we
-            // should adjust this depending on the maximum speed in modes which do limit
-            // it (e.g. RTH).
-
-            // Check tilt via calculateCosTiltAngle(). Note that cos() is decreasing in
-            // the (20, 90] interval, so the cos for the minimum tilt is the maximum
-            // value for calculateCosTiltAngle() - same thing applies to maxTiltCos.
-            const float minTiltCos = 0.9396926207859084f; // cos(20)
-            const float maxTiltCos = 0; // cos(90)
-            if (gpsSol.groundSpeed >= 600 &&
-                calculateCosTiltAngle() <= minTiltCos &&
-                calculateCosTiltAngle() > maxTiltCos) {
-
+            if (gpsSol.groundSpeed >= 600) {
                 float tiltDirection = atan2_approx(attitude.values.roll, attitude.values.pitch);
                 float accXYMagnitudeSq = sq(imuMeasuredAccelBF.V.Y) + sq(imuMeasuredAccelBF.V.X);
-                float accDirection = atan2_approx(imuMeasuredAccelBF.V.Y, imuMeasuredAccelBF.V.X);
-                // Check that the either the acceleration in the XY plane is small ( < 150cm/s^2) or
-                // its direction doesn't differ from the tilt directions by more than PI/4.
+
+                // Check that the either the acceleration in the XY plane is small ( < 150cm/s^2)
                 // This lets us reject measurements where e.g. the MR is braking and it's tilted
                 // back while moving forward
-                if (accXYMagnitudeSq < sq(150) || ABS(tiltDirection - accDirection) < M_PIf / 4) {
-                    int16_t COGRotation = RADIANS_TO_DECIDEGREES(tiltDirection);
-                    groundCourse = (gpsSol.groundCourse + COGRotation);
-                    canUseCOG = true;
+                if (accXYMagnitudeSq < sq(imuConfig()->gps_heading_max_accel_cm)) {
+                    // Accelerometer reading is low, and ground speed is high, therefore we can safely assume
+                    // that the craft is flying in the direction it is tilted, therefore the COGRotation
+                    // correction should be valid, so lets set a new lastCOGRotation
+                    lastCOGRotation = RADIANS_TO_DECIDEGREES(tiltDirection);
                 }
+
+                groundCourse = (gpsSol.groundCourse + lastCOGRotation);
+                canUseCOG = true;
             }
         }
         // Only use each COG reading once, to avoid reusing the same GPS
