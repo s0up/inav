@@ -47,6 +47,8 @@
 
 #include "io/gps.h"
 
+#include "navigation/navigation.h"
+
 #include "sensors/acceleration.h"
 #include "sensors/barometer.h"
 #include "sensors/compass.h"
@@ -474,7 +476,6 @@ static void imuCalculateEstimatedAttitude(float dT)
 #if defined(USE_GPS)
     bool canUseCOG = false;
     int16_t groundCourse;
-    static int16_t lastCOGRotation = 0;
 
     if (imuHasGPSHeadingEnabled() && gpsHasCOG) {
         if (STATE(FIXED_WING)) {
@@ -484,21 +485,26 @@ static void imuCalculateEstimatedAttitude(float dT)
             groundCourse = gpsSol.groundCourse;
         } else {
             if (gpsSol.groundSpeed >= 600) {
+
                 float tiltDirection = atan2_approx(attitude.values.roll, attitude.values.pitch);
-                float accXYMagnitudeSq = sq(imuMeasuredAccelBF.V.Y) + sq(imuMeasuredAccelBF.V.X);
 
-                // Check that the either the acceleration in the XY plane is small ( < 150cm/s^2)
-                // This lets us reject measurements where e.g. the MR is braking and it's tilted
-                // back while moving forward
-                if (accXYMagnitudeSq < sq(imuConfig()->gps_heading_max_accel_cm)) {
-                    // Accelerometer reading is low, and ground speed is high, therefore we can safely assume
-                    // that the craft is flying in the direction it is tilted, therefore the COGRotation
-                    // correction should be valid, so lets set a new lastCOGRotation
-                    lastCOGRotation = RADIANS_TO_DECIDEGREES(tiltDirection);
+                t_fp_vector v = {
+                    .V.X = getEstimatedActualVelocity(X),
+                    .V.Y = getEstimatedActualVelocity(Y),
+                    .V.Z = getEstimatedActualVelocity(Z),
+                };
+                imuTransformVectorEarthToBody(&v);
+
+                float bodySpeedDirectionXY = atan2_approx(v.V.Y, v.V.X);
+
+                // Check that the estimated speed direction is close to the tilt direction
+                // in the XY plane.
+                if (ABS(tiltDirection - bodySpeedDirectionXY) < M_PIf / 8) {
+                    // Rotate by speed direction in XY
+                    int16_t COGRotation = RADIANS_TO_DECIDEGREES(bodySpeedDirectionXY);
+                    groundCourse = (gpsSol.groundCourse + COGRotation);
+                    canUseCOG = true;
                 }
-
-                groundCourse = (gpsSol.groundCourse + lastCOGRotation);
-                canUseCOG = true;
             }
         }
         // Only use each COG reading once, to avoid reusing the same GPS
