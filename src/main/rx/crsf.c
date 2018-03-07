@@ -56,6 +56,9 @@ static timeUs_t crsfFrameStartAt = 0;
 static uint8_t telemetryBuf[CRSF_FRAME_SIZE_MAX];
 static uint8_t telemetryBufLen = 0;
 
+int8_t crsfLQ = 0;
+int8_t crsfRFMode = 0;
+
 
 /*
  * CRSF protocol
@@ -205,6 +208,10 @@ STATIC_UNIT_TESTED uint8_t crsfFrameStatus(void)
             // Inject link quality into channel 17
             const crsfPayloadLinkStatistics_t* linkStats = (crsfPayloadLinkStatistics_t*)&crsfFrame.frame.payload;
             crsfChannelData[16] = scaleRange(constrain(linkStats->uplinkLQ, 0, 100), 0, 100, 191, 1791);    // will map to [1000;2000] range
+
+            //Inject RF mode / LQ into exposed variable 18 (0 = 4HZ, 1 = 50HZ, 2 = 150HZ)
+            crsfLQ = constrain(linkStats->uplinkLQ, 0, 100);
+            crsfRFMode = linkStats->rfMode;
 
             // This is not RC channels frame, update channel value but don't indicate frame completion
             return RX_FRAME_PENDING;

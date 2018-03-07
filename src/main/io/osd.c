@@ -73,6 +73,7 @@
 #include "navigation/navigation.h"
 
 #include "rx/rx.h"
+#include "rx/crsf.h"
 
 #include "sensors/battery.h"
 #include "sensors/diagnostics.h"
@@ -819,6 +820,13 @@ static bool osdDrawSingleElement(uint8_t item)
                 TEXT_ATTRIBUTES_ADD_BLINK(elemAttr);
             }
             break;
+        }
+
+    case OSD_LINK_QUALITY:
+        {
+            uint16_t lq = (crsfLQ + ((crsfRFMode + 1) * 100));
+            buff[0] = SYM_RSSI;
+            tfp_sprintf(buff + 1, "%d", lq);
         }
 
     case OSD_MAIN_BATT_VOLTAGE:

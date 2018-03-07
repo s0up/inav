@@ -82,3 +82,6 @@ struct rxConfig_s;
 struct rxRuntimeConfig_s;
 bool crsfRxInit(const struct rxConfig_s *initialRxConfig, struct rxRuntimeConfig_s *rxRuntimeConfig);
 bool crsfRxIsActive(void);
+
+extern int8_t crsfRFMode;
+extern int8_t crsfLQ;
