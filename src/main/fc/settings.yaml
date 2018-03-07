@@ -1447,6 +1447,10 @@ groups:
         field: item_pos[OSD_RSSI_VALUE]
         min: 0
         max: OSD_POS_MAX_CLI
+      - name: osd_crsf_link_quality_pos
+        field: item_pos[OSD_CRSF_LINK_QUALITY]
+        min: 0
+        max: OSD_POS_MAX_CLI
       - name: osd_flytimer_pos
         field: item_pos[OSD_FLYTIME]
         min: 0

@@ -822,7 +822,7 @@ static bool osdDrawSingleElement(uint8_t item)
             break;
         }
 
-    case OSD_LINK_QUALITY:
+    case OSD_CRSF_LINK_QUALITY:
         {
             uint16_t lq = (crsfLQ + ((crsfRFMode + 1) * 100));
             buff[0] = SYM_RSSI;
@@ -1545,7 +1545,7 @@ static uint8_t osdIncElementIndex(uint8_t elementIndex)
             elementIndex = OSD_GPS_SPEED;
         }
         if (elementIndex == OSD_EFFICIENCY_WH_PER_KM) {
-            STATIC_ASSERT(OSD_EFFICIENCY_WH_PER_KM == OSD_ITEM_COUNT - 1, OSD_EFFICIENCY_MWH_PER_KM_not_last_element);
+            STATIC_ASSERT(OSD_CRSF_LINK_QUALITY == OSD_ITEM_COUNT - 1, OSD_EFFICIENCY_MWH_PER_KM_not_last_element);
             elementIndex = OSD_ITEM_COUNT;
         }
     }
@@ -1560,7 +1560,7 @@ static uint8_t osdIncElementIndex(uint8_t elementIndex)
             elementIndex = OSD_MAIN_BATT_CELL_VOLTAGE;
         }
         if (elementIndex == OSD_EFFICIENCY_WH_PER_KM) {
-            STATIC_ASSERT(OSD_EFFICIENCY_WH_PER_KM == OSD_ITEM_COUNT - 1, OSD_EFFICIENCY_MWH_PER_KM_not_last_element);
+            STATIC_ASSERT(OSD_CRSF_LINK_QUALITY == OSD_ITEM_COUNT - 1, OSD_EFFICIENCY_MWH_PER_KM_not_last_element);
             elementIndex = OSD_ITEM_COUNT;
         }
     }
@@ -1584,6 +1584,8 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
     osdConfig->item_pos[OSD_ALTITUDE] = OSD_POS(1, 0) | VISIBLE_FLAG;
     osdConfig->item_pos[OSD_MAIN_BATT_VOLTAGE] = OSD_POS(12, 0) | VISIBLE_FLAG;
     osdConfig->item_pos[OSD_RSSI_VALUE] = OSD_POS(23, 0) | VISIBLE_FLAG;
+    osdConfig->item_pos[OSD_CRSF_LINK_QUALITY] = OSD_POS(20, 0);
+
     //line 2
     osdConfig->item_pos[OSD_HOME_DIST] = OSD_POS(1, 1);
     osdConfig->item_pos[OSD_MAIN_BATT_CELL_VOLTAGE] = OSD_POS(12, 1);
