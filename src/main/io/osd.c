@@ -826,7 +826,7 @@ static bool osdDrawSingleElement(uint8_t item)
 
     case OSD_CRSF_LINK_QUALITY:
         {
-            uint16_t lq = (crsfLQ + ((crsfRFMode + 1) * 100));
+            uint16_t lq = (crsfLQ + (crsfRFMode * 100));
             buff[0] = SYM_RSSI;
             tfp_sprintf(buff + 1, "%d", lq);
         }
