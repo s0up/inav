@@ -829,6 +829,7 @@ static bool osdDrawSingleElement(uint8_t item)
             uint16_t lq = (crsfLQ + (crsfRFMode * 100));
             buff[0] = SYM_RSSI;
             tfp_sprintf(buff + 1, "%d", lq);
+            break;
         }
 
     case OSD_MAIN_BATT_VOLTAGE:
