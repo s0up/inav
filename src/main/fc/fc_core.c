@@ -63,6 +63,7 @@
 #include "io/serial.h"
 #include "io/statusindicator.h"
 #include "io/asyncfatfs/asyncfatfs.h"
+#include "io/vtx_smartaudio.h"
 
 #include "msp/msp_serial.h"
 
@@ -150,9 +151,28 @@ int16_t getAxisRcCommand(int16_t rawData, int16_t rate, int16_t deadband)
 
 static void updateArmingStatus(void)
 {
+#ifdef VTX_SMARTAUDIO
+    static uint16_t previousPower = 0;
+#endif
+
     if (ARMING_FLAG(ARMED)) {
         LED0_ON;
+
+#ifdef VTX_SMARTAUDIO
+        if (previousPower != 0 && vtxSmartAudioInit() && previousPower != saDevice.power) {
+            saSetPowerByIndex(previousPower);
+        }
+#endif
+
     } else {
+#ifdef VTX_SMARTAUDIO
+        if (previousPower == 0 && vtxSmartAudioInit()) {
+            previousPower = saDevice.power;
+
+            saSetPowerByIndex(0);
+        }
+        
+#endif
         /* CHECK: Run-time calibration */
         static bool calibratingFinishedBeep = false;
         if (isCalibrating()) {
